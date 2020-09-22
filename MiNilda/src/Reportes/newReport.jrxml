@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report name" pageWidth="595" pageHeight="842" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="820a2d5c-7eb5-4803-8dfc-d34ff55e297c">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<queryString>
+		<![CDATA[select f.idFactura,c.nombreComercial,c.numeroRuc, c.direcDomiFis, c.telefono,u.nombre+ ' '+ u.apellido as UserAtendio,
+convert(date,f.fecha_factura)Fecha,convert(time(0),f.fecha_factura)hora,i.producto,v.cantidad,v.precio, v.total
+  from factura f
+inner join cliente c on f.idCliente = c.idCliente
+inner join usuario u on f.idusuario=u.idusuario
+inner join venta v on f.idventa=v.nVenta
+inner join inventario i on v.idinventario=i.idinventario
+where v.nVenta=1
+]]>
+	</queryString>
+	<field name="idFactura" class="java.lang.Integer"/>
+	<field name="nombreComercial" class="java.lang.String"/>
+	<field name="numeroRuc" class="java.lang.String"/>
+	<field name="direcDomiFis" class="java.lang.String"/>
+	<field name="telefono" class="java.lang.String"/>
+	<field name="UserAtendio" class="java.lang.String"/>
+	<field name="Fecha" class="java.sql.Date"/>
+	<field name="hora" class="java.sql.Time"/>
+	<field name="producto" class="java.lang.String"/>
+	<field name="cantidad" class="java.lang.Double"/>
+	<field name="precio" class="java.lang.Double"/>
+	<field name="total" class="java.lang.Double"/>
+	<variable name="total_1" class="java.lang.Double" resetType="Column" calculation="Sum">
+		<variableExpression><![CDATA[$F{total}]]></variableExpression>
+	</variable>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="79" splitType="Stretch"/>
+	</title>
+	<pageHeader>
+		<band height="35" splitType="Stretch"/>
+	</pageHeader>
+	<columnHeader>
+		<band height="61" splitType="Stretch">
+			<staticText>
+				<reportElement x="483" y="2" width="100" height="20" uuid="f593fa50-8b37-45d2-ac57-24f47bf095e4"/>
+				<text><![CDATA[total]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="125" splitType="Stretch">
+			<textField>
+				<reportElement x="431" y="20" width="100" height="20" uuid="bd73c405-8bf2-4b89-933b-fc23ba77e8a0"/>
+				<textFieldExpression><![CDATA[$F{total}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch">
+			<textField pattern="###0.00">
+				<reportElement x="431" y="12" width="100" height="20" uuid="22dae6a2-e90d-4798-9718-8588db84fe17"/>
+				<textFieldExpression><![CDATA[$V{total_1} * 0.18]]></textFieldExpression>
+			</textField>
+		</band>
+	</columnFooter>
+	<pageFooter>
+		<band height="54" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="42" splitType="Stretch"/>
+	</summary>
+</jasperReport>

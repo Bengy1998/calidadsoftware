@@ -1,0 +1,1009 @@
+USE MASTER
+GO
+DROP DATABASE IF EXISTS ventas;
+GO
+CREATE DATABASE ventas;
+GO
+USE ventas;
+/* set names utf8; */
+--tabla de roles para usuarios
+IF OBJECT_ID ('dbo.rol') IS NOT NULL  
+   DROP TABLE rol;  
+GO 
+
+CREATE TABLE rol(
+idrol            INTEGER NOT NULL PRIMARY KEY,
+rol               VARCHAR(60) NOT NULL)
+
+GO
+---InsertANDo datos---
+INSERT INTO rol(idrol,rol) VALUES
+(1,'Administrador'),
+(2,'Empleado'),(3,'SuperAdmin');
+
+--tabla de usuarios
+IF OBJECT_ID ('dbo.usuario') IS NOT NULL  
+   DROP TABLE usuario;  
+GO 
+CREATE TABLE usuario
+(
+	idusuario          INTEGER IDENTITY(1000,1) PRIMARY KEY ,
+	apellido             VARCHAR(60) NOT NULL,
+	nombre               VARCHAR(60) NOT NULL,
+	dni                  INTEGER NOT NULL UNIQUE,
+	telefono             INTEGER NOT NULL,
+    sexo				VARCHAR(20) NOT NULL,
+	idrol                INTEGER NOT NULL,
+	usuario              VARCHAR(20) NOT NULL UNIQUE,
+	clave                VARCHAR(30) NOT NULL,
+    fecha				DATETIME2(0) DEFAULT GETDATE(),
+	estado               INTEGER NOT NULL,
+	fotoUrl             VARCHAR(60) NOT NULL,
+
+	CONSTRAINT FK_USUARIO_ROL FOREIGN KEY (idrol)REFERENCES ROL(idrol)) 
+	GO
+
+---proceso almacenado ---
+IF OBJECT_ID ('dbo.InsertUsuario') IS NOT NULL  
+   DROP PROCEDURE InsertUsuario;  
+GO 
+CREATE PROCEDURE InsertUsuario (
+	@u_apellido             VARCHAR(60),
+	@u_nombre               VARCHAR(60),
+	@u_dni                  INTEGER,
+	@u_telefono             INTEGER,
+    @u_sexo				VARCHAR(20),
+	@u_idrol                INTEGER ,
+	@u_usuario              VARCHAR(20),
+	@u_clave                VARCHAR(60),
+	@u_estado               INTEGER,
+	@u_fotoUrl             VARCHAR(60))
+    as
+    begin
+    INSERT INTO USUARIO(apellido,nombre,       
+dni,telefono,sexo,idrol,usuario,clave,estado,fotoUrl) VALUES(@u_apellido,@u_nombre,       
+@u_dni,@u_telefono,@u_sexo,@u_idrol,@u_usuario,@u_clave,@u_estado,@u_fotoUrl);
+END;
+GO
+---InsertANDo datos---
+exec InsertUsuario 'Aguila Ruiz','Bengy Jammil',71488520,946522258,'Hombre',3,'BJAR','BJAR',1,'bengy.png'
+exec InsertUsuario 'Vicente Rosas ','Noe pisado',71488555,946522259,'Hombre',1,'NOE','NOE',1,'user-prueba.png'
+exec InsertUsuario 'Juan Carlos','Medina Dias',71488660,946522259,'Hombre',2,'Juan','Juan',1,'user-prueba.png'
+GO
+/*
+
+SELECT * FROM USUARIO WHERE USUARIO LIKE 'b%'
+----WHERE (producto LIKE '" + buscar + "%' or  idinventario LIKE'" + buscar + "%')";
+
+SELECT u.idusuario,u.apellido,u.nombre, u.dni,u.telefono,u.sexo ,r.rol,u.usuario,u.clave,convert(DATE,u.fecha)fecha,
+CASE WHEN u.estado = '1' THEN 'Activo' ELSE 'Desactivo' END as estado
+FROM usuario u  INNER JOIN ROL r on u.idrol = r.idrol
+WHERE (u.dni LIKE '%') AND (u.apellido LIKE 'a%')
+order by u.idusuario
+SELECT MAX(idboleta)total FROM boleta
+vSELECT MAX(idboleta)totalb FROM boleta
+go
+---REPORTE---
+SELECT u.idusuario,u.apellido,u.nombre, u.dni,u.telefono,u.sexo ,r.rol,u.usuario,u.clave,convert(DATE,u.fecha)fecha
+,CONVERT(VARCHAR, u.fecha, 108)HORA,u.fotoUrl,
+CASE WHEN u.estado = '1' THEN 'Activo' ELSE 'Desactivo' END as estado
+FROM usuario u  INNER JOIN ROL r on u.idrol = r.idrol
+WHERE u.idusuario = 1000
+GO
+*/
+
+
+---PROCESO ALMACENADO DE LISTAR USUARIOS ----------
+
+IF OBJECT_ID ('dbo.ListarUser') IS NOT NULL  
+   DROP PROCEDURE ListarUser;  
+GO 
+CREATE PROCEDURE ListarUser (
+	@buscar VARCHAR(60))
+	
+	as
+    begin
+	SELECT u.idusuario,u.apellido,u.nombre, u.dni,u.telefono,u.sexo ,r.rol,u.usuario,u.clave,convert(DATE,u.fecha)fecha,u.fotoUrl,
+CASE WHEN u.estado = '1' THEN 'Activo' ELSE 'Desactivo' END AS estado
+FROM usuario u  INNER JOIN ROL r on u.idrol = r.idrol
+WHERE (u.dni LIKE @buscar+'%' or u.apellido LIKE @buscar + '%')
+order by u.idusuario
+END;
+GO
+
+
+---PROCESO ALMACENADO  ACTUALIZAR USUARIO --------
+
+IF OBJECT_ID ('dbo.actualizarUsuario') IS NOT NULL  
+   DROP PROCEDURE actualizarUsuario;  
+GO 
+
+CREATE PROCEDURE actualizarUsuario (
+    @u_idusuario			  INTEGER,
+    @u_apellido             VARCHAR(60),
+	@u_nombre               VARCHAR(60),
+	@u_dni                  INTEGER,
+	@u_telefono             INTEGER,
+	@u_sexo             VARCHAR(20),
+	@u_idrol                INTEGER ,
+	@u_usuario              VARCHAR(20),
+	@u_clave                VARCHAR(60),
+	@u_estado               INTEGER,
+	@u_fotoUrl             VARCHAR(60))
+AS
+begin
+
+update USUARIO set   apellido=@u_apellido,
+                       nombre = @u_nombre ,
+					   dni = @u_dni,
+					   telefono = @u_telefono,
+					   sexo = @u_sexo,
+					   idrol = @u_idrol,
+					   usuario = @u_usuario,
+					   clave = @u_clave,
+					   estado = @u_estado,
+					   fotoUrl =@u_fotoUrl
+WHERE idusuario=@u_idusuario;
+END;
+GO
+
+
+---PROCESO ALMACENADO  ELIMINAR USUARIO ------
+ 
+ 
+IF OBJECT_ID ('dbo.eliminarUsuario') IS NOT NULL  
+   DROP PROCEDURE eliminarUsuario;  
+GO 
+
+
+CREATE PROCEDURE eliminarUsuario
+(
+ @p_idusuario INT
+)
+AS
+begin
+delete  FROM USUARIO 
+ WHERE idusuario=@p_idusuario;
+
+END;
+GO
+
+
+
+--- TABLA  CATEGORIA ------
+
+IF OBJECT_ID ('dbo.categoria') IS NOT NULL  
+   DROP TABLE categoria;  
+GO 
+
+CREATE TABLE categoria (
+idCategoria			 INTEGER IDENTITY(1000,1) PRIMARY KEY,
+categoria			varchar (20)UNIQUE NOT  NULL,          
+descripcion		      varchar(250),
+fecha				DATETIME2(0) DEFAULT GETDATE());
+go
+
+------PROCESO ALMACENADO TABLA  INSERT CATEGORIA ----------------
+IF OBJECT_ID ('dbo.InsertCategoria') IS NOT NULL  
+   DROP PROCEDURE InsertCategoria;  
+GO 
+CREATE PROCEDURE InsertCategoria(
+	@c_categoria varchar(20),
+    @c_descripcion varchar (250))
+    AS
+    begin
+    INSERT INTO categoria(categoria,descripcion) VALUES(@c_categoria,@c_descripcion);
+END;
+GO
+
+---IINSERTANDO DATOS----------
+
+exec InsertCategoria 'Carnes y embutidos','carnes y embutidos de todo tipo '
+exec InsertCategoria 'Frutas','frutas de todo tipo - venta por kilo'
+exec InsertCategoria 'galleta','todo tipo de galletas de sal y dulce'
+exec InsertCategoria 'Conservas','conservas de pescado'
+exec InsertCategoria 'Bebidas','bebidas de todo tipo'
+exec InsertCategoria 'Limpieza','instrumentos y cosas de limpiza'
+
+go
+
+----CREANDO PROCESO ALMACENADO ACTUALIZAR CATEGORIA ----------
+
+IF OBJECT_ID ('dbo.actualizarCategoria') IS NOT NULL  
+   DROP PROCEDURE actualizarCategoria;  
+GO 
+
+CREATE PROCEDURE actualizarCategoria (
+    @c_idCategoria int,
+   @c_categoria varchar(20),
+    @c_descripcion varchar (250))
+AS
+begin
+update categoria set   categoria=@c_categoria,
+					   descripcion =@c_descripcion
+WHERE idCategoria=@c_idCategoria;
+END;
+GO
+
+
+---CREANDO PROCESO ALMACENADO ELIMINAR CATEGORIA----------
+ go
+ 
+IF OBJECT_ID ('dbo.eliminarCategoria') IS NOT NULL  
+   DROP PROCEDURE eliminarCategoria;  
+GO 
+
+
+CREATE PROCEDURE eliminarCategoria
+(
+ @p_idcategoria INT
+)
+AS
+begin
+
+delete  FROM categoria 
+ WHERE idCategoria=@p_idcategoria;
+
+END;
+GO
+
+---CREANDO PROCESO ALMACENADO LISTAR CATEGORIA----------
+IF OBJECT_ID ('dbo.listCat') IS NOT NULL  
+   DROP PROCEDURE listCat;  
+GO
+
+CREATE PROCEDURE listCat(
+@c_nombre varchar(10)
+)
+AS 
+begin
+SELECT idCategoria, categoria, descripcion, convert(DATE,fecha)Fecha FROM categoria
+WHERE categoria LIKE @c_nombre+'%'
+order by idCategoria
+END;
+GO
+
+---CREANDO TABLA  UNIDAD MEDIDA----------
+
+-------------------------------
+IF OBJECT_ID ('dbo.unidadMedida') IS NOT NULL  
+   DROP TABLE unidadMedida;  
+GO 
+CREATE TABLE unidadMedida(
+idUnidadMedida      INTEGER IDENTITY(1000,1) PRIMARY KEY,
+unidad				varchar(20) NOT NULL,
+abreviatura			varchar(4) NOT NULL ,
+descripcion			varchar (250),
+fecha		DATETIME2(0) DEFAULT GETDATE());
+
+
+
+----------CREANDO PROCESO ALMACENADO INSERT UNIDAD MEDIDA-------------
+
+IF OBJECT_ID ('dbo.InsertunidadMedida') IS NOT NULL  
+   DROP PROCEDURE InsertunidadMedida;  
+GO 
+ 
+
+CREATE PROCEDURE InsertunidadMedida(
+	@u_unidad varchar(20),
+	@U_abreviatura VARCHAR(4),
+    @u_descripcion varchar (250))
+    AS
+    begin
+	if(@u_descripcion ='')
+    INSERT INTO unidadMedida(unidad,abreviatura,descripcion) VALUES(@u_unidad,@U_abreviatura,NULL);
+	ELSE
+	 INSERT INTO unidadMedida(unidad,abreviatura,descripcion) VALUES(@u_unidad,@U_abreviatura,@u_descripcion);
+END;
+GO
+
+---Insert Datos----------
+
+exec InsertunidadMedida 'kilogramo','Kg',NULL
+exec InsertunidadMedida 'Litro','L',NULL
+exec InsertunidadMedida 'Paquete','Pq',NULL
+exec InsertunidadMedida 'Unidad','Ud',NULL
+exec InsertunidadMedida 'Gramo','Gr',NULL
+
+----------------CREANDO PROCESO ALMACENADO ACTUALIZAR UNIDAD MEDIDA--------------------
+IF OBJECT_ID ('dbo.actualizarunidadMedida') IS NOT NULL  
+   DROP PROCEDURE actualizarunidadMedida;  
+GO 
+
+CREATE PROCEDURE actualizarunidadMedida (
+@u_idUnidadMedida Integer,
+  @u_unidad varchar(20),
+  	@u_abreviatura VARCHAR(4),
+    @u_descripcion varchar (250))
+as
+begin
+update unidadMedida set   unidad=@u_unidad,
+							abreviatura=@u_abreviatura,
+					   descripcion =@u_descripcion
+WHERE idUnidadMedida=@u_idUnidadMedida;
+END;
+GO
+ 
+ ---CREANDO PROCESO ALMACENADO ELIMINAR UNIDAD MEDIDA----------
+ 
+IF OBJECT_ID ('dbo.eliminarunidadMedida') IS NOT NULL  
+   DROP PROCEDURE eliminarunidadMedida;  
+GO 
+
+
+CREATE PROCEDURE eliminarunidadMedida
+(
+ @u_unidadMedida INT
+)
+as
+begin
+delete  FROM unidadMedida 
+ WHERE idUnidadMedida=@u_unidadMedida;
+
+END;
+GO
+
+---CREANDO PROCESO ALMACENADO LISTAR UNIDAD MEDIDA----------
+
+IF OBJECT_ID ('dbo.listUnidadMedida') IS NOT NULL  
+   DROP PROCEDURE listUnidadMedida;  
+GO 
+CREATE PROCEDURE listUnidadMedida(
+@c_nombre varchar(10)
+)
+as 
+begin
+SELECT  idUnidadMedida, unidad,abreviatura , descripcion , convert(date,fecha)fecha FROM unidadMedida
+WHERE unidad LIKE @c_nombre+'%'
+order by idUnidadMedida
+END;
+
+GO
+
+
+---CREANDO VISTA INSERT UNIDAD MEDIDA----------
+
+IF OBJECT_ID ('dbo.listUnidadMedi') IS NOT NULL  
+   DROP VIEW listUnidadMedi;  
+GO 
+CREATE VIEW listUnidadMedi as
+SELECT  idUnidadMedida, unidad,abreviatura , descripcion , convert(date,fecha)fecha FROM unidadMedida
+------------------------------
+GO
+
+
+---CREANDO TABLE INVENTARIO----------
+
+IF OBJECT_ID ('dbo.inventario') IS NOT NULL  
+   DROP TABLE inventario;  
+GO 
+
+CREATE table inventario(
+idinventario integer PRIMARY KEY IDENTITY(1000,1),
+producto varchar(20) UNIQUE,
+idCategoria int,
+idUnidadMedida int,
+preciocompra float NOT NULL,
+precioventa float NOT NULL,
+stock float NOT NULL,
+fecha		DATETIME2(0) DEFAULT GETDATE(),
+fechaVencimiento date
+CONSTRAINT FK_INVENTARIO_CATE FOREIGN KEY (idCategoria)REFERENCES categoria(idCategoria),
+CONSTRAINT FK_INVENTARIO_IN FOREIGN KEY (idUnidadMedida)REFERENCES unidadMedida(idUnidadMedida)) 
+
+
+---CREANDO PROCESO ALMACENADO INSERT INVENTARIO----------
+
+go
+IF OBJECT_ID ('dbo.Insertinventario') IS NOT NULL  
+   DROP PROCEDURE Insertinventario;  
+GO 
+
+
+CREATE PROCEDURE Insertinventario(
+	@i_producto varchar(20),
+    @i_idCategoria varchar(20),
+	@i_idUnidadMedida varchar(20),
+	@i_preciocompra float,
+	@i_precioventa float,
+	@i_stock float,
+	@fechaVencimiento date)
+    as
+    begin
+	if(@fechaVencimiento='')
+
+    INSERT INTO inventario(producto,idCategoria,idUnidadMedida,     
+preciocompra,precioventa,stock,fechaVencimiento) 
+VALUES(@i_producto,(SELECT idCategoria FROM categoria WHERE categoria =@i_idCategoria),
+(SELECT idUnidadMedida FROM unidadMedida WHERE unidad = @i_idUnidadMedida),@i_preciocompra,@i_precioventa,@i_stock,NULL)
+ELSE
+  INSERT INTO inventario(producto,idCategoria,idUnidadMedida,     
+preciocompra,precioventa,stock,fechaVencimiento) 
+VALUES(@i_producto,(SELECT idCategoria FROM categoria WHERE categoria =@i_idCategoria)
+,(SELECT idUnidadMedida FROM unidadMedida WHERE unidad = @i_idUnidadMedida),@i_preciocompra,@i_precioventa,@i_stock,@fechaVencimiento)
+END;
+ 
+ GO
+
+
+--- INSERT DATOS----------
+
+exec Insertinventario 'hbg de pollo','Carnes y embutidos','Paquete','2','3.5','100','2019-11-20'
+exec Insertinventario 'hbg de carne','Carnes y embutidos','Paquete','2','3.5','100','2019-05-20'
+exec Insertinventario 'naranjas','Frutas','kilogramo','05','1.5','100',''
+exec Insertinventario 'atun','Conservas','Unidad','3','5','100','2020-05-20'
+exec Insertinventario 'galleta soda','galleta','Unidad','0.2','0.5','100','2020-05-20'
+exec Insertinventario 'gs inka cola 1l','Bebidas','Unidad','2','5','100','2020-05-20'
+exec Insertinventario 'gs coca cola 1l','Bebidas','Unidad','2','5','100','2019-07-20'
+exec Insertinventario 'gs fanta','Bebidas','Unidad','2','5','100','2019-07-1'
+exec Insertinventario 'rc de basura','Limpieza','Unidad','6','12','100',''
+exec Insertinventario 'escoba','Limpieza','Unidad','6','12','0',''
+exec Insertinventario 'prf H Manzana','Limpieza','Unidad','6','12','200',''
+go
+
+
+---CREANDO PROCESO ALMACENADO ACTUALIZAR INVENTARIO---------
+
+IF OBJECT_ID ('dbo.actualizarinventario') IS NOT NULL  
+   DROP PROCEDURE actualizarinventario;  
+GO 
+
+CREATE PROCEDURE actualizarinventario (
+	@i_idinventario integer,
+	@i_producto varchar(20),
+    @i_idCategoria varchar(20),
+	@i_idUnidadMedida varchar(20),
+	@i_preciocompra float,
+	@i_precioventa float,
+	@i_stock float,
+	@fechaVencimiento date)
+as
+begin
+if(@fechaVencimiento ='')
+update inventario set   producto=@i_producto,
+						idCategoria=(SELECT idCategoria FROM categoria WHERE categoria =@i_idCategoria),
+						idUnidadMedida=(SELECT idUnidadMedida FROM unidadMedida WHERE unidad =@i_idUnidadMedida),
+                        preciocompra=@i_preciocompra,
+                        precioventa=@i_precioventa,
+                        stock=@i_stock,
+					   fechaVencimiento =NULL
+WHERE idinventario=@i_idinventario;
+ELSE
+update inventario set   producto=@i_producto,
+						idCategoria=(SELECT idCategoria FROM categoria WHERE categoria =@i_idCategoria),
+						idUnidadMedida=(SELECT idUnidadMedida FROM unidadMedida WHERE unidad =@i_idUnidadMedida),
+                        preciocompra=@i_preciocompra,
+                        precioventa=@i_precioventa,
+                        stock=@i_stock,
+					   fechaVencimiento =@fechaVencimiento
+WHERE idinventario=@i_idinventario;
+END;
+GO
+
+
+
+---CREANDO VISTA ALMACENADO ELIMINAR INVENTARIO----------
+
+IF OBJECT_ID ('dbo.eliminarinventario') IS NOT NULL  
+   DROP PROCEDURE eliminarinventario;  
+GO 
+
+CREATE PROCEDURE eliminarinventario
+(@i_idinventario INT)
+as
+begin
+delete  FROM inventario 
+ WHERE idinventario=@i_idinventario;
+
+END;
+GO
+
+
+---CREANDO VISTA  LISTAR INVENTARIO----------
+----VISTA EN SOFTWARE-----
+IF OBJECT_ID ('dbo.listaInventario') IS NOT NULL  
+   DROP VIEW listaInventario;  
+GO 
+CREATE VIEW listaInventario 
+as
+SELECT i.idinventario, i.producto,c.categoria,u.unidad, i.preciocompra, i.precioventa, i.stock , i.fechaVencimiento,
+case
+ when ((DATEADD(MONTH,-1,i.fechaVencimiento) < i.fechaVencimiento) AND (i.fechaVencimiento <= GETDATE())) THEN 'vencido' 
+
+ when ((getdate()<i.fechaVencimiento) AND(i.fechaVencimiento >DATEADD(MONTH,+1,GETDATE())))  THEN 'estable'
+ when ((DATEADD(MONTH,-1,i.fechaVencimiento) <= i.fechaVencimiento) AND(i.fechaVencimiento > GETDATE()))THEN 'por vencer'
+	
+ELSE 'sin fecha'
+ END AS vencimiento
+ FROM inventario i
+INNER JOIN categoria c on i.idCategoria=c.idCategoria
+INNER JOIN unidadMedida u on i.idUnidadMedida=u.idUnidadMedida
+
+go
+
+
+---CREANDO VISTA  LISTAR INVENTARIO-----
+----VISTA PARA TABLA CENTAS----
+IF OBJECT_ID ('dbo.listarProductos') IS NOT NULL  
+   DROP VIEW listarProductos;  
+GO 
+
+CREATE VIEW listarProductos
+as
+SELECT i.idinventario, i.producto,u.abreviatura,c.categoria,i.precioventa, i.stock , i.fechaVencimiento,
+case
+ when ((DATEADD(MONTH,-1,i.fechaVencimiento) < i.fechaVencimiento) AND (i.fechaVencimiento <= GETDATE())) THEN 'vencido' 
+
+ when ((getdate()<i.fechaVencimiento) AND(i.fechaVencimiento >DATEADD(MONTH,+1,GETDATE())))  THEN 'estable'
+ when ((DATEADD(MONTH,-1,i.fechaVencimiento) <= i.fechaVencimiento) AND(i.fechaVencimiento > GETDATE()))THEN 'por vencer'
+	
+ELSE 'sin fecha'
+ END AS vencimiento
+ FROM inventario i
+INNER JOIN categoria c on i.idCategoria=c.idCategoria
+INNER JOIN unidadMedida u on i.idUnidadMedida=u.idUnidadMedida
+
+go
+
+
+---CREANDO PROCESO ALMACENADO   BUSCAR  INVENTARIO----------
+IF OBJECT_ID ('dbo.buscarInventario') IS NOT NULL  
+   DROP PROCEDURE buscarInventario;  
+GO 
+
+CREATE PROCEDURE buscarInventario(@i_buscar varchar(20))
+as 
+begin
+SELECT i.idinventario, i.producto,c.categoria,u.unidad, i.preciocompra, i.precioventa, i.stock , i.fechaVencimiento,
+case
+ when ((DATEADD(MONTH,-1,i.fechaVencimiento) < i.fechaVencimiento) AND (i.fechaVencimiento <= GETDATE())) THEN 'vencido' 
+
+ when ((getdate()<i.fechaVencimiento) AND(i.fechaVencimiento >DATEADD(MONTH,+1,GETDATE())))  THEN 'estable'
+ when ((DATEADD(MONTH,-1,i.fechaVencimiento) <= i.fechaVencimiento) AND(i.fechaVencimiento > GETDATE()))THEN 'por vencer'
+	
+ELSE 'sin fecha'
+ END AS vencimiento
+ FROM inventario i
+INNER JOIN categoria c on i.idCategoria=c.idCategoria
+INNER JOIN unidadMedida u on i.idUnidadMedida=u.idUnidadMedida
+WHERE i.producto LIKE @i_buscar+'%'
+END
+GO
+
+------CREANDO PROCESO ALMACENADO   BUSCAR  INVENTARIO--------------------
+
+/*Creamos unan proceso de filtros, en este caso
+mostrara todos los productos que no esten vencidos
+y que tengan stock*/
+
+IF OBJECT_ID ('dbo.buscarProducto') IS NOT NULL  
+   DROP PROCEDURE buscarProducto;  
+GO 
+CREATE PROCEDURE buscarProducto(@i_categoria varchar(20),@i_buscar varchar(20))
+as 
+begin
+if(@i_categoria='')
+SELECT * FROM listarProductos
+WHERE vencimiento <> 'vencido' AND stock > 0 AND producto LIKE + @i_buscar+ '%'
+ELSE
+SELECT * FROM listarProductos
+WHERE vencimiento <> 'vencido' AND stock > 0 AND producto LIKE + @i_buscar+ '%' AND categoria=@i_categoria
+END
+go
+
+
+---CREATE TABLE CLIENTE----------
+IF OBJECT_ID ('dbo.cliente') IS NOT NULL  
+   DROP TABLE cliente;  
+GO
+
+CREATE TABLE cliente(
+idCliente INTEGER IDENTITY(1000,1) PRIMARY KEY,
+numeroRuc VARCHAR(20),
+nombreComercial VARCHAR(200),
+direcDomiFis VARCHAR(400),
+telefono VARCHAR(20),
+fecha  DATETIME2(0) DEFAULT GETDATE())
+
+---CREATE PROCEDURE INSERT CLIENTE----------
+IF OBJECT_ID ('dbo.registrarCliente') IS NOT NULL  
+   DROP PROCEDURE registrarCliente;  
+GO
+
+CREATE PROCEDURE registrarCliente
+(@c_numeroRuc varchar(20),@c_nombreComercial varchar(200), @c_direcDomiFis varchar(400),@c_telefono varchar(20))
+AS
+BEGIN
+INSERT INTO cliente(numeroRuc,nombreComercial,direcDomiFis,telefono)
+VALUES(@c_numeroRuc,@c_nombreComercial,@c_direcDomiFis,@c_telefono)
+END
+GO
+
+EXEC  registrarCliente '20100047218',
+'BANCO DE CREDITO DEL PERU','CAL.CENTENARIO NRO. 156 URB. LAS LADERAS DE MELGAREJO LIMA - LIMA - LA MOLINA','(01)311-9898'
+EXEC  registrarCliente '20100047220',
+'BANCO DE CREDITO DEL PERU','CAL.CENTENARIO NRO. 156 URB. LAS LADERAS DE MELGAREJO LIMA - LIMA - LA MOLINA','(01)311-9898'
+GO
+---CREATE PROCEDURE DELETE CLIENTE----------
+IF OBJECT_ID ('dbo.eliminarCliente') IS NOT NULL  
+   DROP PROCEDURE eliminarCliente;  
+GO
+
+CREATE PROCEDURE eliminarCliente
+(@c_idCliente integer)
+AS
+BEGIN
+delete FROM cliente
+WHERE idCliente = @c_idCliente
+END
+GO
+
+---CREATE PROCEDURE UPDATE CLIENTE----------
+IF OBJECT_ID ('dbo.actualizarCliente') IS NOT NULL  
+   DROP PROCEDURE actualizarCliente;  
+GO
+
+CREATE PROCEDURE actualizarCliente
+(@c_idCliente integer,@c_numeroRuc varchar(20),@c_nombreComercial varchar(200), @c_direcDomiFis varchar(400),@c_telefono varchar(20))
+AS
+BEGIN
+update  cliente set numeroRuc = @c_numeroRuc,
+					nombreComercial =@c_nombreComercial,
+					direcDomiFis=@c_direcDomiFis,
+					telefono = @c_telefono
+WHERE idCliente = @c_idCliente
+END
+GO
+----Listar CLIENTE----
+IF OBJECT_ID ('dbo.listarCliente') IS NOT NULL  
+   DROP PROCEDURE listarCliente;  
+GO
+CREATE PROCEDURE listarCliente(@lc_buscar varchar(20))
+AS 
+BEGIN
+if(@lc_buscar = '')
+select idCliente,numeroRuc,nombreComercial,direcDomiFis,telefono,convert(date,fecha)fecha from cliente
+else
+select idCliente,numeroRuc,nombreComercial,direcDomiFis,telefono,convert(date,fecha)fecha from cliente
+where numeroRuc like @lc_buscar+'%' or nombreComercial like @lc_buscar+'%'
+END
+GO
+
+
+----- VENTA---
+
+IF OBJECT_ID ('dbo.venta') IS NOT NULL  
+   DROP TABLE venta;  
+GO
+
+CREATE TABLE venta (
+  idventa INTEGER PRIMARY KEY NOT NULL,
+  fecha DATETIME2(0) DEFAULT GETDATE())
+
+GO
+------DETALLE VENTA-----
+IF OBJECT_ID ('dbo.detalleVenta') IS NOT NULL  
+   DROP TABLE detalleVenta;  
+GO
+
+CREATE TABLE detalleVenta(
+iddetalleVenta INTEGER PRIMARY KEY IDENTITY(1,1) NOT NULL,
+idventa INTEGER NOT NULL,
+idinventario INTEGER NOT NULL,
+precio FLOAT NOT NULL,
+cantidad FLOAT NOT NULL,
+CONSTRAINT FK_DETALLE_VENTA__IDI FOREIGN KEY (idinventario)REFERENCES inventario(idinventario),
+CONSTRAINT FK_DDETALLE_VENTA__IDV FOREIGN KEY (idventa)REFERENCES venta(idventa)
+)
+---FACTURA---
+IF OBJECT_ID ('dbo.factura') IS NOT NULL  
+   DROP TABLE factura;  
+GO
+
+CREATE TABLE factura (
+  idFactura INTEGER PRIMARY KEY IDENTITY(1,1),
+  idusuario INTEGER NOT NULL,
+  idCliente INTEGER NOT NULL,
+  idventa   INTEGER NOT NULL,
+  fecha_factura DATETIME2(0) DEFAULT GETDATE()
+  CONSTRAINT FK_FACTURA_IDU FOREIGN KEY (idusuario)REFERENCES usuario(idusuario),
+  CONSTRAINT FK_FACTURA_IDCLI FOREIGN KEY (idCliente)REFERENCES cliente(idCliente),
+  CONSTRAINT FK_FACTURA_IDVE FOREIGN KEY (idventa)REFERENCES venta(idventa))
+GO
+
+----BOLETA----
+IF OBJECT_ID ('dbo.boleta') IS NOT NULL  
+   DROP TABLE boleta;  
+GO
+
+CREATE TABLE boleta (
+  idboleta INT PRIMARY KEY IDENTITY(1,1),
+  idusuario INT NOT NULL,
+  idventa   INTEGER NOT NULL,
+  nombre_cliente VARCHAR(100),
+  fecha_Vboleta DATETIME2(0) DEFAULT GETDATE()
+  CONSTRAINT FK_BOLETA_ID FOREIGN KEY (idusuario)REFERENCES usuario(idusuario),
+  CONSTRAINT FK_BOLETA_IDVE FOREIGN KEY (idventa)REFERENCES venta(idventa)
+)
+GO
+
+----CREANDO PROCESO  INSERT VENTA----
+IF OBJECT_ID ('dbo.realizarVenta') IS NOT NULL  
+   DROP PROCEDURE realizarVenta;  
+GO
+
+CREATE PROCEDURE realizarVenta(@v_nVenta INTEGER)
+AS
+BEGIN
+INSERT INTO venta(idventa)
+VALUES(@v_nVenta)
+END
+GO
+
+---------------------
+IF OBJECT_ID ('dbo.realizarDetalleVenta') IS NOT NULL  
+   DROP PROCEDURE realizarDetalleVenta;  
+GO
+
+CREATE PROCEDURE realizarDetalleVenta(@v_nVenta INTEGER,@v_idinventario VARCHAR(50), @v_cantidad FLOAT)
+AS
+BEGIN
+INSERT INTO detalleVenta(idventa,idinventario,precio,cantidad)
+VALUES(@v_nVenta,(select idinventario from inventario  where producto=@v_idinventario),
+(select precioventa from inventario  where producto=@v_idinventario) ,@v_cantidad)
+UPDATE inventario SET stock = stock - @v_cantidad WHERE idinventario = (select idinventario from inventario  where producto=@v_idinventario)
+END
+GO
+
+-------------------
+/*
+EXEC realizarDetalleVenta 1,'hbg de pollo',2
+EXEC realizarDetalleVenta 1,'naranjas',40
+
+EXEC realizarDetalleVenta 2,'hbg de pollo',2
+EXEC realizarDetalleVenta 2,'naranjas',2
+
+
+
+EXEC realizarDetalleVenta 3,'hbg de pollo',40
+EXEC realizarDetalleVenta 3,'naranjas',2
+
+
+EXEC realizarDetalleVenta 4,'hbg de pollo',2
+EXEC realizarDetalleVenta 4,'naranjas',2*/
+
+
+-----PROCESO ALMACENADO INSERT FACTURA ----------
+IF OBJECT_ID ('dbo.insertFactura') IS NOT NULL  
+   DROP PROCEDURE insertFactura;  
+GO
+
+CREATE PROCEDURE insertFactura(@f_idusuario INTEGER,@f_idcliente varchar(200), @f_nventa INTEGER)
+AS
+BEGIN
+INSERT INTO factura(idusuario,idCliente,idventa)VALUES(@f_idusuario,
+(select idCliente from cliente where nombreComercial +'-' + numeroRuc=@f_idCliente or numeroRuc + '-'+nombreComercial =  @f_idCliente), @f_nventa) 
+END
+GO
+/*
+EXEC insertFactura 1000,'20100047218-BANCO DE CREDITO DEL PERU',1
+EXEC insertFactura 1000,'20100047218-BANCO DE CREDITO DEL PERU',2*/
+
+-----PROCESO ALMACENADO VERIFICAR CLIENTE ----------
+
+IF OBJECT_ID ('dbo.verificarCliente') IS NOT NULL  
+   DROP PROCEDURE verificarCliente;  
+GO
+CREATE PROCEDURE verificarCliente(@c_dato varchar(400))
+AS
+BEGIN
+select numeroRuc + '-' + nombreComercial as verificado  from cliente where nombreComercial +'-' + numeroRuc=@c_dato or numeroRuc + '-'+nombreComercial =  @c_dato
+END
+GO
+
+---EXEC verificarCliente '20100047218-BANCO DE CREDITO DEL PERU'
+-----PROCESO ALMACENADO INSERT BOLETA ----------
+
+IF OBJECT_ID ('dbo.insertBoleta') IS NOT NULL  
+   DROP PROCEDURE insertBoleta;  
+GO
+
+CREATE PROCEDURE insertBoleta(@b_idusuario INTEGER, @b_nventa INTEGER, @b_nombreCliente varchar(100))
+AS
+BEGIN
+IF(@b_nombreCliente='')
+INSERT INTO boleta(idusuario,idventa,nombre_cliente)VALUES
+(@b_idusuario,@b_nventa,null)
+ELSE
+INSERT INTO boleta(idusuario,idventa,nombre_cliente)VALUES
+(@b_idusuario,@b_nventa,@b_nombreCliente)
+END
+GO
+/*
+EXEC insertBoleta 1001,3,''
+EXEC insertBoleta 1001,4,'Vicente Rosas'*/
+
+--------EMITIR FACTURA---------
+/*select f.idFactura,c.nombreComercial,c.numeroRuc, c.direcDomiFis, c.telefono,u.nombre+ ' '+ u.apellido as UserAtendio,
+convert(date,f.fecha_factura)Fecha,convert(time(0),f.fecha_factura)hora,i.producto,dv.cantidad,dv.precio, (dv.cantidad*dv.precio)total
+  from factura f
+inner join cliente c on f.idCliente = c.idCliente
+inner join usuario u on f.idusuario=u.idusuario
+inner join venta v on f.idventa=v.idventa
+inner join detalleVenta dv on v.idventa=dv.idventa
+inner join inventario i on dv.idinventario=i.idinventario
+where v.idventa=1*/
+
+
+
+GO
+--------VIEW EMITIR FACTURA-----
+IF OBJECT_ID ('dbo.viewFactura') IS NOT NULL  
+   DROP VIEW viewFactura;  
+GO
+CREATE VIEW viewFactura
+AS
+select f.idFactura,c.nombreComercial,c.numeroRuc,u.apellido as UserAtendio,
+i.producto,dv.cantidad,dv.precio,  (dv.cantidad*dv.precio)total,
+(n1.total_venta*0.19) as igv_venta,
+	(n1.total_venta-(n1.total_venta*0.19)) as subTotal_venta,
+	n1.total_venta,
+convert(date,f.fecha_factura)Fecha,convert(time(0),f.fecha_factura)hora
+  from factura f
+inner join cliente c on f.idCliente = c.idCliente
+inner join usuario u on f.idusuario=u.idusuario
+inner join venta v on f.idventa=v.idventa
+inner join detalleVenta dv on v.idventa=dv.idventa
+inner join inventario i on dv.idinventario=i.idinventario
+INNER JOIN (
+	select  idventa, sum(cantidad*precio) as total_venta 
+	from detalleVenta
+	group by idventa
+) AS n1 on v.idventa = n1.idventa;
+GO
+
+--------VIEW EMITIR BOLETA---------
+IF OBJECT_ID ('dbo.viewBoleta') IS NOT NULL  
+   DROP VIEW viewBoleta;  
+GO
+CREATE VIEW viewBoleta
+AS
+select b.idboleta, b.nombre_cliente,u.apellido +' ' + u.nombre as vendedor, i.producto,dv.precio,dv.cantidad, (dv.cantidad*dv.precio)total,
+(n1.total_venta*0.19) as igv_venta,
+	(n1.total_venta-(n1.total_venta*0.19)) as subTotal_venta,
+	n1.total_venta,
+convert(date,b.fecha_Vboleta)Fecha,convert(time(0),b.fecha_Vboleta)hora 
+from boleta b
+inner join usuario u on b.idusuario=u.idusuario
+inner join venta v on b.idventa=v.idventa
+inner join detalleVenta dv on v.idventa=dv.idventa
+inner join inventario i on dv.idinventario=i.idinventario
+INNER JOIN (
+	select  idventa, sum(cantidad*precio) as total_venta 
+	from detalleVenta
+	group by idventa
+) AS n1 on v.idventa = n1.idventa;
+GO
+
+-----VIEW VENTAS-----
+IF OBJECT_ID ('dbo.viewVentas') IS NOT NULL  
+   DROP VIEW viewVentas;  
+GO
+CREATE VIEW viewVentas
+AS
+select 
+	v.idventa, i.producto,u.unidad, dv.precio, dv.cantidad,  (dv.cantidad*dv.precio)total,
+	(n1.total_venta*0.19) as igv_venta,
+	(n1.total_venta-(n1.total_venta*0.19)) as subTotal_venta,
+	n1.total_venta,
+	convert(date,v.fecha)as Fecha,
+	convert(time(0),v.fecha) as hora
+from venta v
+inner join detalleVenta dv on v.idventa=dv.idventa
+inner join inventario i on dv.idinventario=i.idinventario
+INNER JOIN unidadMedida u on i.idUnidadMedida=u.idUnidadMedida
+INNER JOIN (
+	select  idventa, sum(cantidad*precio) as total_venta 
+	from detalleVenta
+	group by idventa
+) AS n1 on v.idventa = n1.idventa;
+GO
+----PROCESO ALMACENADO DE BUSQUEDA DE BOLETA -----
+
+IF OBJECT_ID ('dbo.reporteBoleta') IS NOT NULL  
+   DROP PROCEDURE reporteBoleta;  
+GO
+
+CREATE PROCEDURE reporteBoleta(@r_nVenta varchar(5), @r_fechaInicio varchar(14),@r_fechaFin varchar(14))
+AS
+BEGIN
+
+IF(@r_nVenta ='' AND @r_fechaInicio='' AND @r_fechaFin='')
+
+	SELECT * FROM viewBoleta
+	order by idboleta
+ELSE IF(@r_fechaInicio='' AND @r_fechaFin='')
+
+	SELECT * FROM viewBoleta
+	WHERE idboleta =@r_nVenta
+	order by idboleta
+ELSE IF(@r_nVenta ='')
+
+	SELECT * FROM viewBoleta
+	WHERE Fecha BETWEEN @r_fechaInicio AND @r_fechaFin
+	order by idboleta
+ELSE 
+
+	SELECT * FROM viewBoleta
+	WHERE idboleta = @r_nVenta AND  Fecha BETWEEN @r_fechaInicio AND @r_fechaFin
+	order by idboleta
+END
+GO
+
+
+----PROCESO ALMACENADO DE BUSQUEDA DE FACTURA -----
+
+IF OBJECT_ID ('dbo.reporteFactura') IS NOT NULL  
+   DROP PROCEDURE reporteFactura;  
+GO
+
+CREATE PROCEDURE reporteFactura(@r_nVenta varchar(5), @r_fechaInicio varchar(14),@r_fechaFin varchar(14))
+AS
+BEGIN
+
+IF(@r_nVenta ='' AND @r_fechaInicio='' AND @r_fechaFin='')
+
+	SELECT * FROM viewFactura
+	order by idFactura
+ELSE IF(@r_fechaInicio='' AND @r_fechaFin='')
+
+	SELECT * FROM viewFactura
+	WHERE idFactura =@r_nVenta
+	order by idFactura
+ELSE IF(@r_nVenta ='')
+
+	SELECT * FROM viewFactura
+	WHERE Fecha BETWEEN @r_fechaInicio AND @r_fechaFin
+	order by idFactura
+ELSE 
+
+	SELECT * FROM viewFactura
+	WHERE idFactura = @r_nVenta AND Fecha BETWEEN @r_fechaInicio AND @r_fechaFin
+	order by idFactura
+END
+GO
+exec reporteFactura '','',''
+----PROCESO ALMACENADO DE BUSQUEDA DE VENTA -----
+
+IF OBJECT_ID ('dbo.reporteVenta') IS NOT NULL  
+   DROP PROCEDURE reporteVenta;  
+GO
+
+CREATE PROCEDURE reporteVenta(@r_nVenta varchar(5), @r_fechaInicio varchar(14),@r_fechaFin varchar(14))
+AS
+BEGIN
+
+IF(@r_nVenta ='' AND @r_fechaInicio='' AND @r_fechaFin='')
+
+	SELECT * FROM viewVentas
+	order by idventa
+ELSE IF(@r_fechaInicio='' AND @r_fechaFin='')
+
+	SELECT * FROM viewVentas
+	WHERE idventa =@r_nVenta
+	order by idventa
+
+ELSE IF(@r_nVenta ='')
+
+	SELECT * FROM viewVentas
+	WHERE Fecha BETWEEN @r_fechaInicio AND @r_fechaFin
+	order by idventa
+ELSE 
+
+	SELECT * FROM viewVentas
+	WHERE idventa = @r_nVenta AND Fecha BETWEEN @r_fechaInicio AND @r_fechaFin
+	order by idventa
+END
+GO
+

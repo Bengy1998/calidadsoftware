@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report name" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="482688e7-cf42-4cf8-a6bb-c02a1962f6d4">
+	<property name="ireport.zoom" value="1.9487171000000014"/>
+	<property name="ireport.x" value="108"/>
+	<property name="ireport.y" value="21"/>
+	<parameter name="logo" class="java.io.InputStream"/>
+	<queryString>
+		<![CDATA[select i.producto,c.categoria,u.unidad,i.stock, i.preciocompra, i.precioventa,convert(date,i.fecha)Fecha,
+
+CASE WHEN  convert (varchar,convert(date,i.fechaVencimiento)) IS NULL THEN 'Sin fecha' 
+ELSE convert (varchar,i.fechaVencimiento) END FechaVencimiento,
+case
+ when ((DATEADD(MONTH,-1,i.fechaVencimiento) < i.fechaVencimiento) and (i.fechaVencimiento <= GETDATE())) THEN 'Vencido' 
+
+ when ((getdate()<i.fechaVencimiento) and(i.fechaVencimiento >DATEADD(MONTH,+1,GETDATE())))  THEN 'Estable'
+ when ((DATEADD(MONTH,-1,i.fechaVencimiento) <= i.fechaVencimiento) and(i.fechaVencimiento > GETDATE()))THEN 'Por vencer'
+	
+else 'Sin fecha'
+ END AS vencimiento
+ from inventario i
+inner join categoria c on i.idCategoria=c.idCategoria
+inner join unidadMedida u on i.idUnidadMedida=u.idUnidadMedida]]>
+	</queryString>
+	<field name="producto" class="java.lang.String"/>
+	<field name="categoria" class="java.lang.String"/>
+	<field name="unidad" class="java.lang.String"/>
+	<field name="stock" class="java.lang.Double"/>
+	<field name="preciocompra" class="java.lang.Double"/>
+	<field name="precioventa" class="java.lang.Double"/>
+	<field name="Fecha" class="java.sql.Date"/>
+	<field name="FechaVencimiento" class="java.lang.String"/>
+	<field name="vencimiento" class="java.lang.String"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="54" splitType="Stretch">
+			<staticText>
+				<reportElement x="2" y="16" width="800" height="38" uuid="cb353c97-107d-4b9d-a3a6-876c131f2125"/>
+				<box leftPadding="0"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="24"/>
+				</textElement>
+				<text><![CDATA[MINIMARKET MI NILDA]]></text>
+			</staticText>
+			<textField pattern="EEEEE dd MMMMM yyyy">
+				<reportElement x="702" y="0" width="100" height="20" uuid="8cba1826-fc68-4410-a1e0-49db32f07e25"/>
+				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="227" y="13" width="42" height="39" uuid="cef4fa39-b527-4ac1-b46a-dc63b1870e0e"/>
+				<imageExpression><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="39" splitType="Stretch">
+			<staticText>
+				<reportElement x="0" y="0" width="802" height="35" uuid="f4151022-f1ad-4466-b9b2-7706fe532031"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="SansSerif" size="18"/>
+				</textElement>
+				<text><![CDATA[Lista de Productos]]></text>
+			</staticText>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<rectangle>
+				<reportElement x="0" y="0" width="802" height="20" forecolor="#000000" backcolor="#007BFF" uuid="452b8a34-5b8c-46f2-a2e3-d1c372a421de"/>
+			</rectangle>
+			<line>
+				<reportElement x="135" y="0" width="1" height="20" forecolor="#000000" uuid="af232e43-a0be-40fe-b4c0-abb6e0727854"/>
+			</line>
+			<staticText>
+				<reportElement x="0" y="0" width="113" height="20" forecolor="#FFFFFF" uuid="8760d0e9-2766-4b1c-ae60-a051cc6100ec"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Producto]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="136" y="0" width="100" height="20" forecolor="#FFFFFF" uuid="ee0112f4-767c-4087-a924-91b12109d9f8"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Categoria]]></text>
+			</staticText>
+			<line>
+				<reportElement x="235" y="0" width="1" height="20" forecolor="#000000" uuid="76b1e168-d376-42c0-98d6-35a845d8b75b"/>
+			</line>
+			<staticText>
+				<reportElement x="237" y="0" width="88" height="20" forecolor="#FFFFFF" uuid="b1bf341b-807a-4ff1-9b7b-7904ebd9c5f2"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Unidad]]></text>
+			</staticText>
+			<line>
+				<reportElement x="325" y="0" width="1" height="20" forecolor="#000000" uuid="79547652-5bac-404c-b393-9c258616f33a"/>
+			</line>
+			<staticText>
+				<reportElement x="326" y="0" width="60" height="20" forecolor="#FFFFFF" uuid="0fe468ad-578f-4830-866c-7872373e6c70"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[Stock]]></text>
+			</staticText>
+			<line>
+				<reportElement x="386" y="0" width="1" height="20" forecolor="#000000" uuid="32837264-08e6-4b98-ba5b-0505f978dddf"/>
+			</line>
+			<staticText>
+				<reportElement x="387" y="0" width="59" height="20" forecolor="#FFFFFF" uuid="828611dc-d648-4df1-ae92-6df1b6639d2c"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[P.Compra]]></text>
+			</staticText>
+			<line>
+				<reportElement x="445" y="0" width="1" height="20" forecolor="#000000" uuid="7a92e8cd-eac0-48fb-8e0f-49b031b85531"/>
+			</line>
+			<staticText>
+				<reportElement x="446" y="0" width="68" height="20" forecolor="#FFFFFF" uuid="bb9e07dd-52b3-4224-bce9-59175f06a0d3"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[P.Venta]]></text>
+			</staticText>
+			<line>
+				<reportElement x="513" y="0" width="1" height="20" forecolor="#000000" uuid="85160212-cc82-4ed5-b06a-f6aa224fc751"/>
+			</line>
+			<staticText>
+				<reportElement x="515" y="0" width="100" height="20" forecolor="#FFFFFF" uuid="e0abcd26-4e2c-4ce8-b703-c04c1c804f6f"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[F.Registro]]></text>
+			</staticText>
+			<line>
+				<reportElement x="614" y="0" width="1" height="20" forecolor="#000000" uuid="132ad837-1683-4108-a32e-6da0d460c423"/>
+			</line>
+			<staticText>
+				<reportElement x="616" y="0" width="186" height="20" forecolor="#FFFFFF" uuid="978aad2d-d973-4085-bb25-68fc19fe74ba"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font isBold="true"/>
+				</textElement>
+				<text><![CDATA[F.Vencimiento]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="26" splitType="Stretch">
+			<rectangle>
+				<reportElement x="0" y="0" width="802" height="26" uuid="626d8f5f-2191-4a64-a946-c45a1e831496"/>
+			</rectangle>
+			<line>
+				<reportElement x="135" y="0" width="1" height="26" uuid="d7e78c3c-ff1f-4a76-920a-8abd53861b51"/>
+			</line>
+			<textField>
+				<reportElement x="2" y="0" width="112" height="26" uuid="037a284a-2bee-476d-8dfe-fbf878396bf9"/>
+				<textElement textAlignment="Justified" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{producto}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="140" y="0" width="97" height="26" uuid="62676db4-0025-4722-b4bc-3ba9fa0ba304"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{categoria}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="235" y="0" width="1" height="26" uuid="c2fbc2ef-3366-4abf-aedc-bc43109ecca6"/>
+			</line>
+			<line>
+				<reportElement x="325" y="0" width="1" height="26" uuid="8ffae458-bd0d-4efe-bcc7-e801f6a7b718"/>
+			</line>
+			<textField>
+				<reportElement x="239" y="0" width="86" height="26" uuid="19d3815b-612f-4ac3-9a6e-b8bfb6d91f12"/>
+				<textElement verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{unidad}]]></textFieldExpression>
+			</textField>
+			<textField>
+				<reportElement x="330" y="0" width="56" height="26" uuid="dd8d5609-7d34-4d16-8f65-a06850a25a3e"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{stock}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="386" y="0" width="1" height="26" uuid="255c936b-85fa-4a2b-8db5-82bdd256da1f"/>
+			</line>
+			<textField>
+				<reportElement x="391" y="0" width="55" height="26" uuid="525e4b40-a029-42d9-90eb-476607a7c8a7"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{preciocompra}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="445" y="0" width="1" height="26" uuid="122c6cca-77fe-4e48-973a-4213cfa4c352"/>
+			</line>
+			<textField>
+				<reportElement x="448" y="0" width="66" height="26" uuid="d05298f7-5f48-4398-87a7-21b3ed6cf1ae"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{precioventa}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="513" y="0" width="1" height="26" uuid="0d475a1f-bf3a-4826-8d50-fe92e550ce11"/>
+			</line>
+			<textField>
+				<reportElement x="519" y="0" width="96" height="26" uuid="6efc9632-7b55-4ed5-b9c9-a7f23960ef1a"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[new java.text.SimpleDateFormat("yyyy-MM-dd").format($F{Fecha})]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement x="614" y="0" width="1" height="26" uuid="888c169e-583d-49ab-8de3-3b6b13fd36b5"/>
+			</line>
+			<textField>
+				<reportElement x="616" y="0" width="186" height="26" uuid="635c396b-8cb7-4155-a5c0-cc54dcc6437b"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle"/>
+				<textFieldExpression><![CDATA[$F{FechaVencimiento} +" - " +  $F{vencimiento}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<columnFooter>
+		<band height="45" splitType="Stretch">
+			<staticText>
+				<reportElement x="2" y="25" width="482" height="20" uuid="28a0133d-e2a9-4e10-be0f-9406bef13eb6"/>
+				<text><![CDATA[Aguila Ruiz Bengy - UCH - bengyjar1998@outlook.com - Minimarket Mi Nilda]]></text>
+			</staticText>
+		</band>
+	</columnFooter>
+	<summary>
+		<band height="35" splitType="Stretch"/>
+	</summary>
+</jasperReport>
